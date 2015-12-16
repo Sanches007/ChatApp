@@ -102,7 +102,7 @@ public class MainForm implements Observer {
 		scrollBar1.setViewportView(textLogin);
 
 		JButton apply = new JButton("Apply");
-
+                apply.setBackground(Color.GREEN);
 		JPanel conectFrends = new JPanel(new GridLayout(1, 2, 10, 0));
 
 		JLabel time = new JLabel();
@@ -127,7 +127,7 @@ public class MainForm implements Observer {
 		scrollBar2.setViewportView(textRLogin);
 
 		JButton connect = new JButton("Connect");
-
+                connect.setBackground(Color.GREEN);
 		JLabel remoteAddr = new JLabel();
 		remoteAddr.setText("Remote Addr");
 		remoteAddr.setHorizontalAlignment(JLabel.CENTER);
@@ -140,6 +140,7 @@ public class MainForm implements Observer {
 		scrollBar3.setViewportView(textRAddr);
 
 		JButton disconnect = new JButton("Disconnect");
+                disconnect.setBackground(Color.CYAN);
 
 		rtop.add(remoteLogin);
 		rtop.add(scrollBar2);
@@ -148,7 +149,7 @@ public class MainForm implements Observer {
 		rtop.add(scrollBar3);
 		rtop.add(disconnect);
 
-		panel_1.setBackground(Color.LIGHT_GRAY);
+		panel_1.setBackground(Color.BLUE);
 		panel_1.add(ltop);
 		panel_1.add(rtop);
 
@@ -156,6 +157,7 @@ public class MainForm implements Observer {
 
 		JPanel panel_2 = new JPanel(new BorderLayout());
 		JButton send = new JButton("Send");
+                send.setBackground(Color.WHITE);
 		send.setPreferredSize(new Dimension(100, 30));
 
 		textMess = new JTextArea(3,5);
@@ -164,7 +166,6 @@ public class MainForm implements Observer {
 		JScrollPane scrollBar4 = new JScrollPane(textMess);
 		scrollBar4.setViewportView(textMess);
 
-		panel_2.setBackground(Color.LIGHT_GRAY);
 		panel_2.add(scrollBar4,BorderLayout.CENTER);
 		panel_2.add(send,BorderLayout.EAST);
 
@@ -184,7 +185,7 @@ public class MainForm implements Observer {
 
 		JLabel friends = new JLabel();
 		friends.setText("Friends");
-		friends.setBorder(new LineBorder(Color.BLACK, 1));
+		friends.setBorder(new LineBorder(Color.YELLOW, 1));
 		friends.setHorizontalAlignment(JLabel.CENTER);
 		friends.setPreferredSize(new Dimension(30, 40));
 
@@ -198,7 +199,9 @@ public class MainForm implements Observer {
 
 
 		JButton add = new JButton("Add");
+                add.setBackground(Color.GREEN);
 		JButton delete = new JButton("Delete");
+                delete.setBackground(Color.GRAY);
 		add.setPreferredSize(new Dimension(30, 25));
 
 		but.add(add);
@@ -359,9 +362,10 @@ public class MainForm implements Observer {
 	
 	public void online(int i){
 			boolean bol;
+                        String s = "Online";
 			bol=server.isNickOnline(frendmass[i][0]);
 			if(bol){
-				frendmass[size][2] = "Online";
+				frendmass[size][2] = s;
 			}
 	}
 	
@@ -439,4 +443,8 @@ public class MainForm implements Observer {
 			}
 		}
 	}
+
+    private void setBackground(Color GREEN) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
