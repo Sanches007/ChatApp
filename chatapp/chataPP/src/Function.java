@@ -1,160 +1,156 @@
+import java.awt.Dimension;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Date;
 import java.util.Observable;
 import java.util.Observer;
-
 import javax.swing.DefaultListModel;
-import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
+import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.text.BadLocationException;
 
-public class Function implements Observer {
+public class Function extends MainForm {
+
+	private static JFrame frame;
+	private static JTextArea textLogin;
+	private static JTextArea textRLogin;
+	private static JTextArea textRAddr;
+	private static JTextArea textMess;
+	public static MainForm window;
+	private JList list;
+	private JTable frends;
 	private Friends f = new Friends();
 	private CallListenerThread callListenerThread;
 	private Connection connection;
 	private ServerConnection server;
-	private MainForm form;
-	public Function(MainForm form){
-		this.form=form;
+	private DefaultListModel dlm;
+
+	public Function() throws FileNotFoundException {
+		super(frame, textLogin, textLogin, textLogin, textLogin, window);
 	}
 
-
-	public void Server() throws FileNotFoundException {
+	public void Server() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
 		} catch (ClassNotFoundException e) {
 			e.printStackTrace();
 		}
-		server=new ServerConnection();
+		server = new ServerConnection();
 		server.setServerAddress("jdbc:mysql://files.litvinov.in.ua/chatapp_server?characterEncoding..");
 		server.connect();
-		f.readFriends();
+		f.addFriends();
 	}
 
-	public ServerConnection getServer(){
-		return server;
-	}
-	
-	public void Send(JTextArea login,JTextArea rlogin, JList list, JFrame frame, JTextArea mess, DefaultListModel dlm) {
-				System.out.println("Pop");
-				if ((login.getText().equals("")) || (rlogin.getText().equals(""))
-						|| (rlogin.getText().equals(""))) {
-					JOptionPane.showMessageDialog(frame, "Not enough data for sending the message");
-				} else {
-					String name = new String();
-					if (login.getText().length() > 10) {
-						try {
-							name = login.getText(0, 10);
-						} catch (BadLocationException ignore) {
-						}
-						name = name + "...";
-					} else
-						name = login.getText();
-					long date = System.currentTimeMillis();
-					dlm.addElement("<html>" + name + " " + new Date(date).toLocaleString() + ":<br>"
-							+ mess.getText() + " </span></html>");
-					list.setModel(dlm);
-
-					try {
-						connection.sendMessage(mess.getText());
-						System.out.println("Sended");
-					} catch (IOException ex) {
-						System.out.println("No internet connection");
-					}
-
+	public void Send() {
+		dlm = new DefaultListModel();
+		if ((textLogin.getText().equals("")) || (textRLogin.getText().equals("")) || (textRAddr.getText().equals(""))) {
+			JOptionPane.showMessageDialog(frame, "Not enough data for sending the message");
+		} else {
+			String name = new String();
+			if (textLogin.getText().length() > 10) {
+				try {
+					name = textLogin.getText(0, 10);
+				} catch (BadLocationException ignore) {
 				}
-				mess.setText("");
-				mess.requestFocus();
+				name = name + "...";
+			} else
+				name = textLogin.getText();
+			long date = System.currentTimeMillis();
+			dlm.addElement("<html>" + name + " " + new Date(date).toLocaleString() + ":<br>" + textMess.getText()
+					+ " </span></html>");
+			list.setModel(dlm);
+
+			try {
+				connection.sendMessage(textMess.getText());
+				System.out.println("Sended");
+			} catch (IOException ex) {
+				System.out.println("No internet connection");
 			}
 
-	public void Mess(JButton send) {
-
-					send.doClick();
-
+		}
+		textMess.setText("");
+		textMess.requestFocus();
 	}
 
-	public void Disconnect(JButton disconnect) {
-				if (connection != null)
+		public void Disconnect(){
+
+			if (connection != null)
+				try {
+					connection.disconnect();
+				} catch (IOException ignored) {
+				
+				}
+		}
+		
+		public void Apply(){
+			apply.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+			if (callListenerThread == null) {
+				System.out.println("Added obs");
+				callListenerThread = new CallListenerThread(new CallListener(textLogin.getText()));
+				callListenerThread.addObserver((Observer) window);
+			} else {
+				callListenerThread.setLocalNick(textLogin.getText());
+			}
+		}
+		
+			}
+		public void Add(){
+			f.addFriends();
+			try {
+				f.writeFriends();
+			} catch (FileNotFoundException e1) {
+				e1.printStackTrace();
+			}
+			frends.repaint();
+		}
+		
+	public void Connect(){
+
+			Caller caller = new Caller(textLogin.getText(), textRAddr.getText());
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
 					try {
-						connection.disconnect();
-					} catch (IOException ignored) {
-				}
+						connection = caller.call();
 
-	}
-
-	public void Apply( JTextArea login) {
-				if (callListenerThread == null) {
-					System.out.println("Added obs");
-					callListenerThread = new CallListenerThread(new CallListener(login.getText()));
-					callListenerThread.addObserver(form);
-				} else {
-					callListenerThread.setLocalNick(login.getText());
-				}
-	}
-
-	public void Add(JTable frends, JTextArea login,JTextArea raddr,JTextArea rlogin) {
-
-				f.addFriends(login, rlogin, raddr);
-				try {
-					f.writeFriends();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				}
-				frends.repaint();
-	}
-
-	public void Delete(JTable frends) {
-				try {
-					f.deleteFriends(frends);
-					f.writeFriends();
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				}
-				frends.repaint();
-	}
-
-	public void Connect(JTextArea login,JTextArea raddr,JTextArea rlogin, JFrame frame) {
-				Caller caller = new Caller(login.getText(), raddr.getText());
-				new Thread(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							connection = caller.call();
-
-							if (caller.getStatus().toString().equals("OK"))
-								rlogin.setText(caller.getRemoteNick());
-							else if (caller.getStatus().toString().equals("BUSY")) {
-								JOptionPane.showMessageDialog(frame,
-										"User " + caller.getRemoteNick() + " is busy");
-							} else {
-								JOptionPane.showMessageDialog(frame,
-										"User " + caller.getRemoteNick() + " has declined your call.");
-								connection = null;
-							}
-
-						} catch (IOException ex) {
+						if (caller.getStatus().toString().equals("OK"))
+							textRLogin.setText(caller.getRemoteNick());
+						else if (caller.getStatus().toString().equals("BUSY")) {
+							JOptionPane.showMessageDialog(frame, "User " + caller.getRemoteNick() + " is busy");
+						} else {
 							JOptionPane.showMessageDialog(frame,
-									"Connection error. User with ip does not exist or there is no Internet connection");
+									"User " + caller.getRemoteNick() + " has declined your call.");
 							connection = null;
 						}
+
+					} catch (IOException ex) {
+						JOptionPane.showMessageDialog(frame,
+								"Connection error. User with ip does not exist or there is no Internet connection");
+						connection = null;
 					}
-				}).start();
+				}
+			}).start();
 	}
 
-	private boolean question(String nick, String remoteAddress) {
+	public boolean question(String nick, String remoteAddress) {
 		Object[] options = { "Receive", "Reject" };
-		int dialogResult = JOptionPane.showOptionDialog(main.getFrame(),
+		int dialogResult = JOptionPane.showOptionDialog(frame,
 				"User " + nick + " with ip " + remoteAddress + " is trying to connect with you", "Recive connection",
 				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[0]);
 		if (dialogResult == JOptionPane.YES_OPTION) {
 			System.out.println("Receive");
-			main.getRLoginArea().setText(nick);
-			main.getRAddrArea().setText(remoteAddress);
+			textRLogin.setText(nick);
+			textRAddr.setText(remoteAddress);
 			return true;
 		}
 		System.out.println("Rejected");
@@ -163,6 +159,7 @@ public class Function implements Observer {
 	}
 
 	public void update(Observable o, Object arg) {
+		dlm = new DefaultListModel();
 		if (arg instanceof CallListener) {
 			CallListener c = (CallListener) arg;
 			callListenerThread.suspend();
@@ -177,10 +174,10 @@ public class Function implements Observer {
 			Command command = (Command) arg;
 
 			if (command instanceof MessageCommand) {
-				dlm.addElement("<html>" + main.getRLoginArea().getText() + " "
-								+ new Date(System.currentTimeMillis()).toLocaleString() + ":<br>" + arg.toString()
-								+ " </span></html>");
-				main.getList().setModel(dlm);
+				dlm.addElement(
+						"<html>" + textRLogin.getText() + " " + new Date(System.currentTimeMillis()).toLocaleString()
+								+ ":<br>" + arg.toString() + " </span></html>");
+				list.setModel(dlm);
 			}
 		}
 	}
